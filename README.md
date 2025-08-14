@@ -68,7 +68,7 @@ make example-audio-dry
 # Preview image duplicates (safe)
 make example-image-dry
 
-# Preview video duplicates (safe) 
+# Preview video duplicates (safe)
 make example-video-dry
 ```
 
@@ -164,6 +164,7 @@ make build          # Build distribution packages
 - **Python 3.8+**
 - **External tools**: fpcalc (Chromaprint), ffprobe (FFmpeg)
 - **Dependencies**: Automatically managed via `make install-dev`
+- **Security scanning**: bandit (included in dev dependencies)
 
 Use `make check-deps` to verify all requirements are met.
 
@@ -172,18 +173,52 @@ Use `make check-deps` to verify all requirements are met.
 ### Development Workflow
 
 1. **Setup**: `make dev-setup`
-2. **Code**: Make your changes
-3. **Test**: `make test`
-4. **Quality**: `make check` (format, lint, type-check)
-5. **Commit**: Standard git workflow
+2. **Pre-commit hooks**: `make setup-pre-commit` (recommended)
+3. **Code**: Make your changes
+4. **Test**: `make test`
+5. **Quality**: `make check` (format, lint, type-check)
+6. **Pre-commit check**: `make pre-commit` (optional - runs automatically on commit)
+7. **Commit**: Standard git workflow
+
+### Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality. After setup, they run automatically on every commit.
+
+**Setup (one-time):**
+
+```sh
+make setup-pre-commit
+```
+
+**Manual execution (if needed):**
+
+```sh
+make pre-commit          # Run all hooks on all files
+```
+
+**If hooks fail:**
+
+1. Fix the issues reported by the hooks
+2. Stage your changes: `git add .`
+3. Commit again: `git commit -m "your message"`
+
+**Common hook failures and fixes:**
+
+- **Black formatting**: Run `make format` to auto-fix
+- **Ruff linting**: Run `make format` to auto-fix most issues
+- **mypy errors**: Fix type annotations in your code
+- **Test failures**: Fix failing tests in `tests/unit/`
+- **Security issues (bandit)**: Review and fix security vulnerabilities
 
 ### Getting Started
 
 Contributions welcome! Use the Makefile for all development tasks:
 
 - `make dev-setup` - Get started
-- `make test` - Ensure tests pass  
+- `make setup-pre-commit` - Setup git hooks (recommended)
+- `make test` - Ensure tests pass
 - `make check` - Verify code quality
+- `make pre-commit` - Run hooks manually
 
 See `make help` for all available commands.
 

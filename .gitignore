@@ -19,8 +19,8 @@ ENV/
 env/
 .venv
 
-# Package management
-uv.lock
+# Package management (legacy - these are typically committed now)
+# uv.lock should be committed for reproducible builds
 poetry.lock
 Pipfile.lock
 
