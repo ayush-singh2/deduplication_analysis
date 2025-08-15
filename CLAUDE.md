@@ -2,53 +2,44 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Structure
+
+The project uses modern Python packaging:
+
+- Source code in `src/dedupl/` package
+- Comprehensive test suite in `tests/`
+
 ## Project Overview
 
-**deDupl** is a Python toolkit for detecting and removing duplicate audio, image, and video files using perceptual and content-based fingerprinting. The project consists of three main standalone scripts that can be run independently.
+**deDupl** is a Python toolkit for detecting and removing duplicate audio, image, and video files using perceptual and content-based fingerprinting. The project provides modular functionality through a clean package structure.
 
-## Core Scripts
+## Source Modules
 
-- `dedupl_audio_fingerprints.py` - Audio deduplication using Chromaprint fingerprints
-- `dedupl_images_phash.py` - Image deduplication using SHA-1 and perceptual hashing  
-- `dedupl_videos_vphash.py` - Video deduplication using SHA-1 and frame sampling with perceptual hashes
-- `main.py` - Placeholder main entry point (currently just prints hello message)
+- `src/dedupl/common.py` - Shared utilities for all deduplication types
+- `src/dedupl/audio.py` - Audio deduplication logic and fingerprinting
+- `src/dedupl/image.py` - Image deduplication with perceptual hashing
 
-## Running Scripts
+## Development Environment
 
-All scripts are designed to be run with `uv` and support dry-run mode for safe testing:
-
-### Audio Deduplication
+### Setup Development Environment
 
 ```bash
-# Dry run (preview only)
-uv run dedupl_audio_fingerprints.py "/path/to/music" --dry-run --threads 8
-
-# Move duplicates to quarantine
-uv run dedupl_audio_fingerprints.py "/path/to/music" --move-to "/path/to/quarantine" --threads 8
-
-# Delete duplicates (use with caution)
-uv run dedupl_audio_fingerprints.py "/path/to/music" --delete --threads 8
+make install-dev    # Install with development dependencies
+make check-deps     # Verify external dependencies
 ```
 
-### Image Deduplication
+### Running Tests
 
 ```bash
-# Dry run with dependencies
-uv run --with pillow,imagehash,tqdm,pillow-heif dedupl_images_phash.py "/path/to/images" --dry-run --threads 8
-
-# Move duplicates
-uv run --with pillow,imagehash,tqdm,pillow-heif dedupl_images_phash.py "/path/to/images" --move-to "/path/to/quarantine" --threads 8
+make test          # Run all tests
+make test-unit     # Unit tests only
+make test-coverage # With coverage report
+make lint          # Code quality checks
 ```
 
-### Video Deduplication  
+### Usage
 
-```bash
-# Dry run with dependencies
-uv run --with opencv-python-headless,pillow,imagehash,tqdm dedupl_videos_vphash.py "/path/to/videos" --dry-run --threads 8
-
-# Move duplicates
-uv run --with opencv-python-headless,pillow,imagehash,tqdm dedupl_videos_vphash.py "/path/to/videos" --move-to "/path/to/quarantine" --threads 8
-```
+Use the modular components from the `src/dedupl/` package to build custom deduplication workflows or create CLI scripts as needed.
 
 ## External Dependencies
 
@@ -59,7 +50,7 @@ The project requires external tools to be installed and available in PATH:
 
 ## Architecture
 
-Each script follows a similar pattern:
+The deduplication modules follow a similar pattern:
 
 1. **File Discovery** - Recursively scan directories for relevant file types
 2. **Metadata Extraction** - Extract file properties and generate content hashes
@@ -74,9 +65,14 @@ Each script follows a similar pattern:
 - `ImgMeta` - Image metadata with SHA-1 and perceptual hash
 - `VideoMeta` - Video metadata with majority hash and sparse frame hashes
 
-### Threading Strategy
+### Architecture Patterns
 
-All scripts use `concurrent.futures.ThreadPoolExecutor` for parallel processing of files. Default thread count is CPU core count, configurable via `--threads` parameter.
+- **Modular design** with separation of concerns
+- **Security-first approach** with comprehensive validation
+- **Comprehensive error handling** with detailed logging
+- **Parallel processing** using ThreadPoolExecutor
+- **Type safety** with complete annotations
+- **Testability** with dependency injection and mocking
 
 ## File Extensions Supported
 
@@ -84,9 +80,43 @@ All scripts use `concurrent.futures.ThreadPoolExecutor` for parallel processing 
 - **Images**: `.jpg`, `.jpeg`, `.png`, `.webp`, `.bmp`, `.gif`, `.tif`, `.tiff`, `.heic`, `.heif`  
 - **Videos**: `.mp4`, `.mkv`, `.mov`, `.avi`, `.wmv`, `.flv`, `.webm`, `.m4v`, `.mpg`, `.mpeg`, `.ts`
 
-## Safety Features
+## Safety & Security Features
 
-- **Dry-run mode** is the default safe operation - always test before making changes
-- **Quarantine strategy** - move duplicates to a separate folder rather than deleting
-- **Progress tracking** with tqdm when available
-- **Graceful fallbacks** when optional dependencies are missing
+- **Comprehensive security validation** - path traversal prevention, command injection protection
+- **Dry-run mode** as default safe operation
+- **Quarantine strategy** for safe duplicate handling
+- **Extensive error handling** with detailed logging
+- **Type safety** with complete type hints and mypy checking
+- **Comprehensive test coverage** with unit tests for all modules
+
+## Testing
+
+### Unit Tests
+
+- `tests/unit/test_common.py` - 40+ tests for shared utilities
+- `tests/unit/test_audio.py` - 25+ tests for audio functionality
+- `tests/unit/test_image.py` - 30+ tests for image functionality
+
+### Test Features
+
+- Mocked external dependencies (ffprobe, fpcalc)
+- Security validation testing
+- Error condition coverage
+- Performance and quality algorithm testing
+
+## Dependencies
+
+### Python Packages
+
+- Core: tqdm (progress bars)
+- Audio: No additional Python deps (uses external fpcalc)
+- Images: Pillow, imagehash, pillow-heif
+- Video: opencv-python-headless, numpy
+- Dev: pytest, black, ruff, mypy, coverage
+
+### External Tools
+
+- **fpcalc** (Chromaprint): Audio fingerprinting
+- **ffprobe** (FFmpeg): Audio/video metadata
+
+Use `make check-deps` to verify all dependencies.
