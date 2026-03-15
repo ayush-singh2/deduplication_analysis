@@ -1,0 +1,71 @@
+[package]
+name = "dedupl"
+version = "0.2.0"
+edition = "2021"
+rust-version = "1.75"
+license = "MIT"
+description = "High-performance media file deduplication using perceptual fingerprinting"
+keywords = ["deduplication", "media", "audio", "image", "fingerprinting"]
+categories = ["command-line-utilities", "multimedia"]
+
+[lib]
+name = "dedupl"
+path = "src/lib.rs"
+
+[[bin]]
+name = "dedupl"
+path = "src/main.rs"
+
+[dependencies]
+# Error handling
+anyhow = "1"
+thiserror = "2"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+
+# Parallelism
+rayon = "1.10"
+
+# Hashing (SHA-1 for content, generic digest trait)
+sha1 = "0.10"
+digest = "0.10"
+
+# Image processing & perceptual hashing
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "gif", "webp", "bmp", "tiff"] }
+img_hash = "3.2"
+
+# Audio: external tool interaction (fpcalc/ffprobe)
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Filesystem
+walkdir = "2"
+
+# Progress bars (equivalent to tqdm)
+indicatif = "0.17"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# Concurrent map (caching fingerprints across threads)
+dashmap = "6"
+opencv = "0.93.7"
+
+[dev-dependencies]
+tempfile = "3"
+assert_cmd = "2"
+predicates = "3"
+pretty_assertions = "1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+opt-level = 3
+
+[profile.release-debug]
+inherits = "release"
+debug = true
+strip = false
