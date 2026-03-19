@@ -18,7 +18,7 @@ pub fn compute_frame_hash(frame: &core::Mat) -> String {
     .unwrap();
     let mut gray = core::Mat::default();
     imgproc::cvt_color(&resized, &mut gray, imgproc::COLOR_BGR2GRAY, 0).unwrap();
-    let mean = core::mean(&gray).unwrap()[0];
+    let mean = core::mean(&gray, &core::no_array()).unwrap()[0];
     let mut hash_bytes = vec![];
     for y in 0..gray.rows() {
         for x in 0..gray.cols() {
@@ -41,7 +41,7 @@ pub fn fingerprint_video(path: &Path, frame_sample_rate: usize) -> Option<Vec<St
     for i in (0..frame_count).step_by(frame_sample_rate) {
         cap.set(videoio::CAP_PROP_POS_FRAMES, i as f64).ok()?;
         let mut frame = core::Mat::default();
-        if cap.read(&mut frame).ok()? && !frame.empty().unwrap() {
+        if cap.read(&mut frame).ok()? && !frame.empty() {
             hashes.push(compute_frame_hash(&frame));
         }
     }

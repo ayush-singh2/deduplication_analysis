@@ -29,6 +29,8 @@ enum Commands {
     Image(ScanArgs),
     /// Deduplicate video files using frame fingerprinting.
     Video(ScanArgs),
+    /// Deduplicate document files using content hashing.
+    Document(ScanArgs),
 }
 
 /// Common arguments shared by all subcommands.
@@ -71,7 +73,50 @@ fn main() -> anyhow::Result<()> {
         Commands::Audio(args) => run_audio(args),
         Commands::Image(args) => run_image(args),
         Commands::Video(args) => run_video(args),
+        Commands::Document(args) => run_document(args),
     }
+}
+fn run_document(args: ScanArgs) -> anyhow::Result<()> {
+    use dedupl::document::grouping::{group_by_sha1, group_by_ngram};
+    use std::fs;
+    use std::ffi::OsStr;
+    setup_logging(args.verbose);
+
+    let config = DeduplicationConfig::new(
+        args.scan_dir.clone(),
+        args.threads,
+        args.dry_run,
+        args.move_to,
+        args.delete,
+    );
+    config.validate().context("Invalid configuration")?;
+
+    // Collect document files (txt, pdf, docx)
+    let doc_exts = ["txt", "pdf", "docx"];
+    let files: Vec<_> = fs::read_dir(&config.root_dir)?
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.is_file() && path.extension().and_then(OsStr::to_str).map(|ext| doc_exts.contains(&ext)).unwrap_or(false)
+        })
+        .collect();
+
+    println!("Found {} document files", files.len());
+    let file_strs: Vec<_> = files.iter().map(|p| p.to_str().unwrap()).collect();
+
+    // Group by SHA-1 hash (exact duplicates)
+    let groups = group_by_sha1(&file_strs)?;
+    let dup_groups: Vec<Vec<_>> = groups.values().filter(|g| g.len() > 1).cloned().collect();
+
+    println!("Found {} duplicate groups (exact hash)", dup_groups.len());
+    for (i, group) in dup_groups.iter().enumerate() {
+        println!("Group {}:", i + 1);
+        for file in group {
+            println!("  {}", file);
+        }
+    }
+
+    Ok(())
 }
 fn run_video(args: ScanArgs) -> anyhow::Result<()> {
     use dedupl::video::{find_video_files, meta::VideoMeta, fingerprint::fingerprint_video, grouping::group_video_duplicates};

@@ -9,6 +9,7 @@ pub mod common;
 pub mod error;
 pub mod image;
 pub mod video;
+pub mod document;
 
 // Re-export the most commonly used items at crate root.
 pub use common::{DeduplicationConfig, DuplicateStats, Hasher};
